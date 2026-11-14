@@ -1,0 +1,4 @@
+# MCP Python SDK 2.x (provides mcp.server.mcpserver.MCPServer, formerly FastMCP)
+mcp>=2.3,<3
+httpx>=0.28,<1
+python-dotenv>=1.0
