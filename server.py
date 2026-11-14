@@ -6,7 +6,8 @@
 """
 Practice Hub MCP server.
 
-Exposes MCP tools that an AI agent such as Claude Code can call to manage posts on
+Exposes five tools (list_posts, get_post, create_post, update_post,
+delete_post) that an AI agent such as Claude Code can call to manage posts on
 the Practice Hub REST API. Configuration is read from environment variables:
 
     PRACTICE_API_URL      Base URL of the API (default: https://practice.fhsucyber.com)
@@ -206,6 +207,87 @@ async def get_post(id: int) -> str:
         The post as JSON, or an error message (e.g. 404 if it doesn't exist).
     """
     return await _request("GET", f"{POSTS_PATH}/{id}", post_id=id)
+
+
+# --------------------------------------------------------------------------- #
+# Write tools
+# --------------------------------------------------------------------------- #
+@mcp.tool()
+async def create_post(title: str, body: str, tags: Optional[list[str]] = None) -> str:
+    """
+    Create a new Practice Hub post owned by the authenticated user.
+
+    Call this when the user asks to write, publish, add, or create a post.
+
+    Args:
+        title: The post title.
+        body: The post content (plain text or Markdown).
+        tags: A list of tag strings, e.g. ["python", "mcp"]. Omit or use [] for none.
+
+    Returns:
+        The newly created post as JSON (including its new ID), or an error message.
+    """
+    if not title.strip():
+        return "Error: title cannot be empty."
+    payload = {"title": title, "body": body, "tags": tags or []}
+    return await _request("POST", POSTS_PATH, payload=payload)
+
+
+@mcp.tool()
+async def update_post(
+    id: int,
+    title: Optional[str] = None,
+    body: Optional[str] = None,
+    tags: Optional[list[str]] = None,
+) -> str:
+    """
+    Partially update one of YOUR existing Practice Hub posts.
+
+    Call this when the user asks to edit, rename, retitle, change, or retag a
+    post. Only the fields you pass are changed; omitted fields are left as-is.
+    You can only update posts you own; others return a 403 error.
+
+    Args:
+        id: The numeric ID of the post to update.
+        title: New title (optional).
+        body: New body text (optional).
+        tags: New full list of tags, replacing the old list (optional).
+
+    Returns:
+        The updated post as JSON, or an error message (401/403/404).
+    """
+    payload: dict[str, Any] = {}
+    if title is not None:
+        payload["title"] = title
+    if body is not None:
+        payload["body"] = body
+    if tags is not None:
+        payload["tags"] = tags
+
+    if not payload:
+        return "Nothing to update: provide at least one of title, body, or tags."
+
+    return await _request("PATCH", f"{POSTS_PATH}/{id}", payload=payload, post_id=id)
+
+
+@mcp.tool()
+async def delete_post(id: int) -> str:
+    """
+    Permanently delete one of YOUR Practice Hub posts by ID.
+
+    Call this only when the user clearly asks to delete or remove a post.
+    You can only delete posts you own; others return a 403 error.
+
+    Args:
+        id: The numeric ID of the post to delete.
+
+    Returns:
+        A success message, or an error message (401/403/404).
+    """
+    result = await _request("DELETE", f"{POSTS_PATH}/{id}", post_id=id)
+    if result.startswith("Error"):
+        return result
+    return f"Post {id} deleted successfully."
 
 
 if __name__ == "__main__":
