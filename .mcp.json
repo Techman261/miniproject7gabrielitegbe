@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mini-project-7": {
+      "command": "C:\\Users\\Techg\\CrossDevice\\Z Fold6\\storage\\project\\mini-project-7\\venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\Users\\Techg\\CrossDevice\\Z Fold6\\storage\\project\\mini-project-7\\server.py"
+      ]
+    }
+  }
+}

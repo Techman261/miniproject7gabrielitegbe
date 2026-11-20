@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__mini-project-7__list_posts",
+      "mcp__mini-project-7__create_post"
+    ]
+  }
+}
